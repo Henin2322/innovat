@@ -1,0 +1,29 @@
+node_modules/
+.next/
+dist/
+build/
+cache/
+artifacts/
+typechain-types/
+
+# Environment files — NEVER commit these
+.env
+.env.local
+.env.*.local
+contracts/.env
+
+# Keys and secrets
+*.key
+*.pem
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Hardhat
+contracts/cache/
+contracts/artifacts/

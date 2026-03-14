@@ -1,0 +1,15 @@
+{
+  "name": "innovate2earn",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install:contracts": "cd contracts && npm install",
+    "install:frontend": "cd frontend && npm install",
+    "compile": "cd contracts && npx hardhat compile",
+    "deploy:mumbai": "cd contracts && npx hardhat run scripts/deploy.js --network mumbai",
+    "deploy:local": "cd contracts && npx hardhat run scripts/deploy.js --network localhost",
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "test": "cd contracts && npx hardhat test"
+  }
+}
