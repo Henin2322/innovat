@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Innovate2Earn — Full Stack Web3 dApp
 
 Antigravity UI · Next.js 14 · Solidity · Polygon Mumbai
@@ -119,3 +120,7 @@ innovate2earn/
     ├── hooks/                  # Wagmi contract hooks
     └── lib/                    # Contract ABIs + config
 ```
+=======
+# innovat
+web3 hackathon
+>>>>>>> dfc940f3d0eccdd15c85e2facd6a4d871859a930

@@ -49,9 +49,9 @@ export default function LeaderboardPage() {
           <div className="ag-nav-logo">INNOV<span style={{ color: "var(--lime)" }}>2</span>EARN</div>
         </Link>
         <div className="ag-nav-links">
-          {["CHALLENGES", "GOVERNANCE", "MY NFTS"].map((l) => (
-            <Link key={l} href={`/${l.toLowerCase().replace(" ", "-")}`} className="ag-nav-link">{l}</Link>
-          ))}
+          <Link href="/#challenges" className="ag-nav-link">CHALLENGES</Link>
+          <Link href="/#governance" className="ag-nav-link">GOVERNANCE</Link>
+          <Link href="/my-nfts" className="ag-nav-link">MY NFTS</Link>
         </div>
       </nav>
 

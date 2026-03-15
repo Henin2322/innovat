@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import { useAccount, useReadContract } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { CONTRACT_ADDRESSES, NFT_CERTIFICATE_ABI } from "@/lib/contracts";
@@ -33,7 +34,6 @@ function NFTCard({ tokenId, tier, level, mintedAt }: { tokenId: string; tier: st
       padding: 0,
       overflow: "hidden",
     } as any}>
-      {/* NFT art area */}
       <div style={{
         background: style.bg, padding: "32px 24px 24px",
         textAlign: "center", borderBottom: `1px solid ${style.accent}30`,
@@ -59,7 +59,6 @@ function NFTCard({ tokenId, tier, level, mintedAt }: { tokenId: string; tier: st
         </div>
       </div>
 
-      {/* Metadata */}
       <div style={{ padding: "16px 24px" }}>
         <p style={{ fontSize: 12, opacity: 0.6, lineHeight: 1.6, marginBottom: 16, fontFamily: "var(--font-mono)", color: "var(--bone)" }}>
           {TIER_DESCRIPTIONS[tier]}
@@ -94,8 +93,10 @@ function LockedTier({ tier }: { tier: string }) {
 
 export default function NFTsPage() {
   const { address, isConnected } = useAccount();
+  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [displayNFTs, setDisplayNFTs] = useState<any[]>([]);
 
-  const { data: tokenIds } = useReadContract({
+  const { data: tokenIds, isError, isLoading } = useReadContract({
     address: CONTRACT_ADDRESSES.nftCertificate,
     abi: NFT_CERTIFICATE_ABI,
     functionName: "getUserCertificates",
@@ -103,12 +104,26 @@ export default function NFTsPage() {
     query: { enabled: !!address },
   });
 
-  // For demo, mock certificate data when tokenIds exist but we can't batch read easily
-  const demoNFTs = [
-    { tokenId: "1", tier: "bronze", level: 1, mintedAt: Math.floor(Date.now() / 1000) - 86400 * 7 },
-  ];
+  useEffect(() => {
+    console.log("NFTs Page - Connection:", isConnected, "Address:", address);
+    console.log("NFTs Page - Contract Data:", tokenIds, "Error:", isError, "Loading:", isLoading);
 
-  const unlockedTiers = new Set(demoNFTs.map((n) => n.tier));
+    if (tokenIds && (tokenIds as any[]).length > 0) {
+      console.log("NFTs Page - Real NFTs found, disabling Demo Mode");
+      setIsDemoMode(false);
+      // Logic for real NFTs would go here
+      setDisplayNFTs([]); 
+    } else if (isConnected && (isError || !tokenIds || (tokenIds as any[]).length === 0)) {
+      console.log("NFTs Page - Switching to Demo Mode");
+      setIsDemoMode(true);
+      setDisplayNFTs([
+        { tokenId: "1", tier: "bronze", level: 1, mintedAt: Math.floor(Date.now() / 1000) - 86400 * 5 },
+        { tokenId: "42", tier: "silver", level: 3, mintedAt: Math.floor(Date.now() / 1000) - 86400 * 2 },
+      ]);
+    }
+  }, [tokenIds, isError, isConnected, address, isLoading]);
+
+  const unlockedTiers = new Set(displayNFTs.map((n) => n.tier));
   const allTiers = ["bronze", "silver", "gold", "platinum", "diamond"];
   const lockedTiers = allTiers.filter((t) => !unlockedTiers.has(t));
 
@@ -119,11 +134,18 @@ export default function NFTsPage() {
           <div className="ag-nav-logo">INNOV<span style={{ color: "var(--lime)" }}>2</span>EARN</div>
         </Link>
         <div className="ag-nav-links">
-          {["CHALLENGES", "GOVERNANCE", "LEADERBOARD"].map((l) => (
-            <Link key={l} href={`/${l.toLowerCase()}`} className="ag-nav-link">{l}</Link>
-          ))}
+          <Link href="/#challenges" className="ag-nav-link">CHALLENGES</Link>
+          <Link href="/#governance" className="ag-nav-link">GOVERNANCE</Link>
+          <Link href="/leaderboard" className="ag-nav-link">LEADERBOARD</Link>
         </div>
-        <ConnectButton />
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          {isDemoMode && (
+            <div style={{ background: "rgba(200,255,0,0.1)", border: "1px solid var(--lime)", color: "var(--lime)", padding: "2px 8px", borderRadius: 4, fontSize: 10, letterSpacing: 1, fontFamily: "var(--font-display)" }}>
+              DEMO MODE
+            </div>
+          )}
+          <ConnectButton />
+        </div>
       </nav>
 
       <div className="ag-page">
@@ -143,9 +165,9 @@ export default function NFTsPage() {
           </div>
         ) : (
           <>
-            <p className="ag-section-label">EARNED CERTIFICATES ({demoNFTs.length})</p>
+            <p className="ag-section-label">EARNED CERTIFICATES ({displayNFTs.length})</p>
             <div className="ag-grid-2" style={{ marginBottom: 48 }}>
-              {demoNFTs.map((nft) => (
+              {displayNFTs.map((nft) => (
                 <NFTCard key={nft.tokenId} {...nft} />
               ))}
             </div>

@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useChainId } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { formatEther, parseEther } from "viem";
+import Link from "next/link";
 import {
   CONTRACT_ADDRESSES, INNOV_TOKEN_ABI, CHALLENGE_REWARDS_ABI,
   GOVERNANCE_ABI, LEVEL_NAMES, CATEGORY_COLORS
@@ -151,7 +152,9 @@ export default function Dashboard() {
   const [votedProposals, setVotedProposals] = useState<Set<string>>(new Set());
   const [mockChallenges, setMockChallenges] = useState<any[]>([]);
   const [mockProposals, setMockProposals] = useState<any[]>([]);
-  const [isDemoMode, setIsDemoMode] = useState(false);
+  const chainId = useChainId();
+  const targetChainId = Number(process.env.NEXT_PUBLIC_CHAIN_ID) || 31337;
+  const isDemoMode = isConnected && chainId !== targetChainId;
 
   // Contract reads
   const { data: tokenBalance, refetch: refetchBalance } = useReadContract({
@@ -190,28 +193,22 @@ export default function Dashboard() {
     functionName: "getActiveProposals",
   });
 
-  // Fetch mock data if contract reads fail
+  // Fetch mock data if contract reads fail or are empty
   useEffect(() => {
-    if (challengesError || !challenges || (challenges as any[]).length === 0) {
+    if (challengesError || (challenges && (challenges as any[]).length === 0)) {
       console.log("Fetching fallback challenges...");
       fetch("/api/challenges")
         .then(r => r.json())
-        .then(data => {
-          setMockChallenges(data.challenges || []);
-          setIsDemoMode(true);
-        });
+        .then(data => setMockChallenges(data.challenges || []));
     }
   }, [challenges, challengesError]);
 
   useEffect(() => {
-    if (proposalsError || !proposals || (proposals as any[]).length === 0) {
+    if (proposalsError || (proposals && (proposals as any[]).length === 0)) {
       console.log("Fetching fallback proposals...");
       fetch("/api/governance")
         .then(r => r.json())
-        .then(data => {
-          setMockProposals(data.proposals || []);
-          setIsDemoMode(true);
-        });
+        .then(data => setMockProposals(data.proposals || []));
     }
   }, [proposals, proposalsError]);
 
@@ -316,14 +313,15 @@ export default function Dashboard() {
   const floatMap = ["float-a", "float-b", "float-c", "float-d"];
 
   return (
-    <>
+    <main className="ag-dashboard">
       {/* NAV */}
       <nav className="ag-nav">
         <div className="ag-nav-logo">INNOV<span>2</span>EARN</div>
         <div className="ag-nav-links">
-          {["CHALLENGES", "LEADERBOARD", "GOVERNANCE", "MY NFTS"].map((l) => (
-            <a key={l} className="ag-nav-link" href={`#${l.toLowerCase().replace(" ", "-")}`}>{l}</a>
-          ))}
+          <a className="ag-nav-link" href="/#challenges">CHALLENGES</a>
+          <Link className="ag-nav-link" href="/leaderboard">LEADERBOARD</Link>
+          <a className="ag-nav-link" href="/#governance">GOVERNANCE</a>
+          <Link className="ag-nav-link" href="/my-nfts">MY NFTS</Link>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           {isDemoMode && (
@@ -531,6 +529,6 @@ export default function Dashboard() {
       {voteModal && (
         <VoteModal proposal={voteModal} onClose={() => setVoteModal(null)} onVote={handleVote} />
       )}
-    </>
+      </main>
   );
 }
